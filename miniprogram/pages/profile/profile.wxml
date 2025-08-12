@@ -1,0 +1,9 @@
+<view class="container">
+  <block wx:if="{{userInfo}}">
+    <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+    <view class="nickname">{{userInfo.nickName}}</view>
+  </block>
+  <block wx:else>
+    <button type="primary" bindtap="onGetUserProfile">获取头像昵称</button>
+  </block>
+</view>

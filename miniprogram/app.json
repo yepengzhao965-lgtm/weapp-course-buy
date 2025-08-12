@@ -1,0 +1,34 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/course-detail/detail",
+    "pages/lesson/lesson",
+    "pages/checkout/checkout",
+    "pages/my-courses/my-courses",
+    "pages/profile/profile"
+  ],
+  "window": {
+    "navigationBarTitleText": "买课小程序",
+    "navigationBarTextStyle": "black",
+    "navigationBarBackgroundColor": "#ffffff"
+  },
+  "tabBar": {
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "课程"
+      },
+      {
+        "pagePath": "pages/my-courses/my-courses",
+        "text": "已购"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "cloud": true
+}

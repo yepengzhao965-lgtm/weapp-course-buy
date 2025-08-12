@@ -1,0 +1,21 @@
+<view class="container">
+  <view class="card">
+    <view class="title">{{course.title}}</view>
+    <view class="subtitle">{{course.brief}}</view>
+    <view class="price">价格：￥{{course.displayPrice}}</view>
+    <button type="primary" bindtap="goCheckout" style="margin-top: 24rpx;">立即购买</button>
+  </view>
+  <view class="card">
+    <view class="title">课程目录</view>
+    <block wx:if="{{lessons.length}}">
+      <block wx:for="{{lessons}}" wx:key="_id">
+        <view class="lesson-item" data-id="{{item._id}}" data-title="{{item.title}}" bindtap="goLesson">
+          <text>{{item.order}}. {{item.title}}</text>
+        </view>
+      </block>
+    </block>
+    <view wx:else>
+      暂无课时
+    </view>
+  </view>
+</view>

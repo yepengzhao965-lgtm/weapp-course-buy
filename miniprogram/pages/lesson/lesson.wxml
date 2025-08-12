@@ -1,0 +1,7 @@
+<view class="container">
+  <view class="title">{{title}}</view>
+  <block wx:if="{{authorized}}">
+    <video src="{{videoUrl}}" controls class="video"></video>
+  </block>
+  <view wx:else style="color: #f56c6c; text-align: center; margin-top: 40rpx;">你还未购买该课程</view>
+</view>

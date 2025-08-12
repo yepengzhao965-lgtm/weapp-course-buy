@@ -1,0 +1,14 @@
+<view class="container">
+  <block wx:if="{{courses.length}}">
+    <block wx:for="{{courses}}" wx:key="_id">
+      <view class="card" data-id="{{item._id}}" bindtap="goCourse">
+        <view class="title">{{item.title}}</view>
+        <view class="subtitle">{{item.brief}}</view>
+        <view style="color:#67c23a;">已购</view>
+      </view>
+    </block>
+  </block>
+  <view wx:else>
+    暂无已购课程
+  </view>
+</view>

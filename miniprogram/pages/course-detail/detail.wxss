@@ -1,0 +1,33 @@
+.container {
+  padding: 24rpx;
+}
+.card {
+  background-color: #ffffff;
+  padding: 24rpx;
+  border-radius: 12rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+.title {
+  font-size: 32rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+.subtitle {
+  font-size: 28rpx;
+  color: #888888;
+  margin-bottom: 12rpx;
+}
+.price {
+  font-size: 28rpx;
+  color: #f56c6c;
+  margin-top: 8rpx;
+}
+.lesson-item {
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+  font-size: 28rpx;
+}
+.lesson-item:last-child {
+  border-bottom: none;
+}

@@ -1,0 +1,7 @@
+{
+  "name": "getLessonUrl",
+  "version": "1.0.0",
+  "description": "根据课时ID返回视频临时链接（需已购课程）",
+  "main": "index.js",
+  "dependencies": { "wx-server-sdk": "latest"}
+}
