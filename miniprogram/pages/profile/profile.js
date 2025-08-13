@@ -78,5 +78,6 @@ Page({
     }
   },
 
-  goMyCourses() { wx.navigateTo({ url: '/pages/my-courses/my-courses' }) }
+  goMyCourses() { wx.navigateTo({ url: '/pages/my-courses/my-courses' }) },
+  goAddCourse() { wx.navigateTo({ url: '/pages/add-course/add-course' }) }
 })

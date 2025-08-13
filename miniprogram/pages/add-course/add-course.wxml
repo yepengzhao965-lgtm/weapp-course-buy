@@ -1,0 +1,16 @@
+<view class="container">
+  <view class="field">
+    <input class="input" placeholder="课程标题" value="{{title}}" data-field="title" bindinput="onInput" />
+  </view>
+  <view class="field">
+    <textarea class="input" placeholder="课程简介" value="{{brief}}" data-field="brief" bindinput="onInput"></textarea>
+  </view>
+  <view class="field">
+    <input class="input" type="number" placeholder="价格（元）" value="{{price}}" data-field="price" bindinput="onInput" />
+  </view>
+  <view class="field">
+    <button bindtap="chooseCover">{{coverTemp ? '重新选择封面' : '选择封面'}}</button>
+    <image wx:if="{{coverTemp}}" class="cover" src="{{coverTemp}}" mode="aspectFill"></image>
+  </view>
+  <button class="submit" bindtap="onSubmit">提交</button>
+</view>
