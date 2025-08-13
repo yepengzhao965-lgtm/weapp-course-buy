@@ -78,9 +78,8 @@ Page({
       const orderId    = data.orderId || '';
       this.setData({ outTradeNo, orderId });
 
-      // 开发/模拟：直接标记已支付
+      // 开发/模拟：云端已直接标记已支付
       if (data.devMock || (app.globalData && app.globalData.mockPay)) {
-        await this._markPaidDev({ outTradeNo, orderId });
         wx.hideLoading();
         wx.showToast({ title: '支付成功（开发模式）' });
         this.setData({ isPaid: true });
@@ -109,18 +108,7 @@ Page({
       this.setData({ paying: false });
     }
   },
-
   // ===== helpers =====
-  // 开发模式：调用后端 markOrderPaid，将订单置为 paid
-  async _markPaidDev({ outTradeNo, orderId }) {
-    try {
-      const data = outTradeNo ? { outTradeNo } : { orderId };
-      await wx.cloud.callFunction({ name: 'markOrderPaid', data });
-    } catch (e) {
-      console.warn('markOrderPaid fail:', e);
-    }
-  },
-
   // 轮询订单状态，等待回调把订单改为 paid
   async _waitPaid({ outTradeNo, orderId }) {
     wx.showLoading({ title: '确认支付中...' });
