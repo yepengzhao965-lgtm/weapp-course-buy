@@ -1,45 +1,166 @@
+// miniprogram/pages/checkout/checkout.js
+const app = getApp();
+
 Page({
   data: {
     courseId: '',
-    course: {},
-    isPaid: false
+    course: null,
+    isPaid: false,
+    orderId: '',
+    outTradeNo: '',
+    paying: false
   },
-  onLoad(options) {
-    const { courseId } = options;
+
+  async onLoad(query) {
+    const courseId = (query && query.courseId) || '';
+    if (!courseId) {
+      wx.showToast({ title: '缺少课程ID', icon: 'none' });
+      return;
+    }
     this.setData({ courseId });
-    this.loadCourse();
+    await this.loadCourse();
   },
+
   async loadCourse() {
-    const db = wx.cloud.database();
     try {
-      const res = await db.collection('courses').doc(this.data.courseId).get();
-      this.setData({ course: res.data });
+      wx.showLoading({ title: '加载中...' });
+      const db = wx.cloud.database();
+      const r = await db.collection('courses').doc(this.data.courseId).get();
+      const yuan = ((r.data && r.data.price ? r.data.price : 0) / 100).toFixed(2);
+      this.setData({ course: { ...r.data, displayPrice: yuan } });
     } catch (e) {
       console.error(e);
-      wx.showToast({ title: '加载失败', icon: 'none' });
+      wx.showToast({ title: '课程加载失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
     }
   },
-  createOrder() {
-    wx.showLoading({ title: '下单中...' });
-    wx.cloud.callFunction({
-      name: 'createOrder',
-      data: {
-        courseId: this.data.courseId,
-      },
-    }).then(res => {
-      // 开发模式：直接标记为已支付
-      return wx.cloud.callFunction({
-        name: 'markOrderPaid',
-        data: { orderId: res.result.orderId },
+
+  async createOrder() {
+    if (this.data.paying) return;
+    this.setData({ paying: true });
+
+    let cr = null;
+    try {
+      const openid = await app.ensureOpenid();
+      if (!openid) { wx.showToast({ title: '请先登录', icon: 'none' }); return; }
+
+      wx.showLoading({ title: '下单中...' });
+
+      cr = await wx.cloud.callFunction({
+        name: 'createOrder',
+        data: { courseId: this.data.courseId }
       });
-    }).then(() => {
-      this.setData({ isPaid: true });
-      wx.showToast({ title: '购买成功' });
-    }).catch(err => {
-      console.error(err);
-      wx.showToast({ title: '支付失败', icon: 'none' });
-    }).finally(() => {
+
+      const raw = (cr && cr.result) || {};
+      console.log('createOrder raw ->', raw);
+
+      // 兼容两种返回：{code:0,data:{...}} 或 直接 {orderId,outTradeNo,...}
+      const normalize = (r) => {
+        if (typeof r.code !== 'undefined') {
+          if (r.code === 0 && r.data) return { ok: true, data: r.data };
+          return { ok: false, msg: r.message || (r.detail ? JSON.stringify(r.detail) : JSON.stringify(r)) };
+        }
+        if (r && (r.orderId || r.outTradeNo)) {
+          return { ok: true, data: { ...r, devMock: (typeof r.devMock === 'boolean' ? r.devMock : true) } };
+        }
+        return { ok: false, msg: JSON.stringify(r) };
+      };
+
+      const norm = normalize(raw);
+      if (!norm.ok) {
+        wx.showModal({ title: '下单失败', content: norm.msg || '未知原因', showCancel: false });
+        return;
+      }
+
+      const data = norm.data || {};
+      const outTradeNo = data.outTradeNo || '';
+      const orderId    = data.orderId || '';
+      this.setData({ outTradeNo, orderId });
+
+      // 开发/模拟：直接标记已支付
+      if (data.devMock || (app.globalData && app.globalData.mockPay)) {
+        await this._markPaidDev({ outTradeNo, orderId });
+        wx.hideLoading();
+        wx.showToast({ title: '支付成功（开发模式）' });
+        this.setData({ isPaid: true });
+        setTimeout(() => wx.redirectTo({ url: '/pages/my-courses/my-courses' }), 600);
+        return;
+      }
+
+      // 正式支付
       wx.hideLoading();
-    });
+      await wx.requestPayment({
+        timeStamp: data.timeStamp,
+        nonceStr:  data.nonceStr,
+        package:   data.package,
+        signType:  data.signType || 'RSA',
+        paySign:   data.paySign
+      });
+
+      await this._waitPaid({ outTradeNo, orderId });
+
+    } catch (e) {
+      console.error('pay_error:', e, 'raw:', cr);
+      const msg = (e && (e.message || e.errMsg)) || '支付取消/失败';
+      wx.showToast({ title: msg, icon: 'none' });
+    } finally {
+      wx.hideLoading();
+      this.setData({ paying: false });
+    }
   },
+
+  // ===== helpers =====
+  // 开发模式：调用后端 markOrderPaid，将订单置为 paid
+  async _markPaidDev({ outTradeNo, orderId }) {
+    try {
+      const data = outTradeNo ? { outTradeNo } : { orderId };
+      await wx.cloud.callFunction({ name: 'markOrderPaid', data });
+    } catch (e) {
+      console.warn('markOrderPaid fail:', e);
+    }
+  },
+
+  // 轮询订单状态，等待回调把订单改为 paid
+  async _waitPaid({ outTradeNo, orderId }) {
+    wx.showLoading({ title: '确认支付中...' });
+    const db = wx.cloud.database();
+    let tries = 0;
+
+    const checkOnce = async () => {
+      tries++;
+      try {
+        let paid = false;
+        if (outTradeNo) {
+          const r = await db.collection('orders').where({ outTradeNo }).get();
+          const od = r.data && r.data[0];
+          paid = !!(od && od.status === 'paid');
+        } else if (orderId) {
+          const r = await db.collection('orders').doc(orderId).get();
+          paid = !!(r.data && r.data.status === 'paid');
+        }
+        if (paid) {
+          wx.hideLoading();
+          wx.showToast({ title: '支付成功' });
+          this.setData({ isPaid: true });
+          wx.redirectTo({ url: '/pages/my-courses/my-courses' });
+          return true;
+        }
+      } catch (e) {
+        console.warn('check order error:', e);
+      }
+      return false;
+    };
+
+    const loop = async () => {
+      const ok = await checkOnce();
+      if (ok) return;
+      if (tries < 10) setTimeout(loop, 1500);
+      else {
+        wx.hideLoading();
+        wx.showToast({ title: '未确认支付，可稍后在已购查看', icon: 'none' });
+      }
+    };
+    loop();
+  }
 });

@@ -1,22 +1,26 @@
 App({
-  /**
-   * 全局数据，可在各个页面通过 getApp().globalData 访问
-   */
-  globalData: {},
+  globalData: { openid: '', version: '0.2.0', mockPay: true },
 
-  /**
-   * 小程序初始化完成时触发
-   */
   onLaunch() {
     if (!wx.cloud) {
-      console.error('请使用 2.2.3 或以上的基础库以使用云能力');
-    } else {
-      wx.cloud.init({
-        // 将此处替换为云开发环境 ID
-        // 查看环境 ID：在微信开发者工具云开发控制台点击详情可查看
-        env: 'cloud1-3gvvy78d0e8953d4',
-        traceUser: true,
-      });
+      console.error('请使用 2.2.3+ 基础库');
+      return;
     }
+    // 绑定到项目当前环境，无需手动写 envId
+    wx.cloud.init({ env: wx.cloud.DYNAMIC_CURRENT_ENV, traceUser: true });
+
+    // 可选：从本地恢复 openid，减少云函数调用
+    const cached = wx.getStorageSync('openid');
+    if (cached) this.globalData.openid = cached;
   },
+
+  // 全局确保拿到 openid，并缓存
+  async ensureOpenid() {
+    if (this.globalData.openid) return this.globalData.openid;
+    const r = await wx.cloud.callFunction({ name: 'login' });
+    const openid = r?.result?.openid || '';
+    this.globalData.openid = openid;
+    if (openid) wx.setStorageSync('openid', openid);
+    return openid;
+  }
 });

@@ -1,7 +1,1 @@
-{
-  "name": "markOrderPaid",
-  "version": "1.0.0",
-  "description": "标记订单已支付",
-  "main": "index.js",
-  "dependencies": { "wx-server-sdk": "latest"}
-}
+{ "name":"markOrderPaid","version":"1.0.0","main":"index.js","dependencies":{"wx-server-sdk":"latest"} }

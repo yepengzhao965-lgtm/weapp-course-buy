@@ -1,9 +1,28 @@
 <view class="container">
-  <block wx:if="{{userInfo}}">
-    <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
-    <view class="nickname">{{userInfo.nickName}}</view>
+  <!-- 已登录 -->
+  <block wx:if="{{user}}">
+    <image class="avatar" src="{{user.avatarUrl}}" mode="aspectFill"></image>
+    <view class="nickname">{{user.nickName}}</view>
+    <view class="tip" wx:if="{{user.nickName === '微信用户'}}">当前为微信默认昵称，可点击下方按钮重新授权或自行编辑</view>
+
+    <!-- 操作按钮 -->
+    <view style="margin-top:16rpx;display:flex;gap:16rpx;">
+      <button class="btn" bindtap="toggleEdit">{{editMode ? '完成编辑' : '编辑资料'}}</button>
+      <button class="btn secondary" bindtap="reAuth">重新授权</button>
+    </view>
+
+    <!-- 编辑区 -->
+    <view wx:if="{{editMode}}" style="width:100%;margin-top:16rpx;">
+      <button open-type="chooseAvatar" bindchooseavatar="onChooseAvatar" class="btn">更换头像</button>
+      <input class="input" placeholder="输入昵称" value="{{user.nickName}}" bindinput="onNickInput"/>
+      <button class="btn" style="margin-top:12rpx" bindtap="saveProfile">保存资料</button>
+    </view>
+
+    <button class="btn" style="margin-top:24rpx" bindtap="goMyCourses">我的课程</button>
   </block>
+
+  <!-- 未登录 -->
   <block wx:else>
-    <button type="primary" bindtap="onGetUserProfile">获取头像昵称</button>
+    <button class="btn" bindtap="onGetUserProfile">一键登录</button>
   </block>
 </view>

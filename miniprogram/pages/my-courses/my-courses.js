@@ -1,31 +1,60 @@
+const app = getApp()
+
 Page({
   data: {
-    courses: []
+    list: [],
+    loading: false,
+    empty: false
   },
-  onShow() {
-    this.loadMyCourses();
-  },
-  async loadMyCourses() {
-    const db = wx.cloud.database();
+
+  async onShow() { this.loadPurchased() },
+
+  async loadPurchased() {
     try {
-      // 查询已支付订单
-      const ordersRes = await db.collection('orders').where({ status: 'paid' }).get();
-      const orderList = ordersRes.data;
-      if (!orderList || orderList.length === 0) {
-        this.setData({ courses: [] });
-        return;
-      }
-      const ids = orderList.map(item => item.courseId);
-      const _ = db.command;
-      const coursesRes = await db.collection('courses').where({ _id: _.in(ids) }).get();
-      this.setData({ courses: coursesRes.data });
+      this.setData({ loading: true })
+      const openid = await app.ensureOpenid()
+      const db = wx.cloud.database()
+      const _ = db.command
+
+      // 1) 取已支付订单
+      const or = await db.collection('orders')
+        .where({ _openid: openid, status: 'paid' })
+        .orderBy('paidAt', 'desc')
+        .get()
+
+      const orders = or.data || []
+      if (!orders.length) { this.setData({ list: [], empty: true, loading: false }); return }
+
+      // 2) 批量取课程
+      const ids = orders.map(o => o.courseId).filter(Boolean)
+      const cr = await db.collection('courses').where({ _id: _.in(ids) }).get()
+      const cmap = {}
+      ;(cr.data || []).forEach(c => cmap[c._id] = c)
+
+      // 3) 组装展示
+      const list = orders.map(o => ({
+        orderId: o._id,
+        outTradeNo: o.outTradeNo,
+        paidAt: o.paidAt || o.createdAt,
+        courseId: o.courseId,
+        title: (cmap[o.courseId] && cmap[o.courseId].title) || '课程已下架',
+        brief: (cmap[o.courseId] && cmap[o.courseId].brief) || '',
+        price: (o.price || 0),
+        displayPrice: ((o.price || 0) / 100).toFixed(2)
+      }))
+
+      this.setData({ list, empty: false })
     } catch (e) {
-      console.error(e);
-      wx.showToast({ title: '加载失败', icon: 'none' });
+      console.error(e)
+      wx.showToast({ title: '加载已购失败', icon: 'none' })
+    } finally {
+      this.setData({ loading: false })
     }
   },
-  goCourse(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: '/pages/course-detail/detail?courseId=' + id });
-  },
-});
+
+  goDetail(e) {
+    const id = e.currentTarget.dataset.id
+    if (!id) return
+    wx.navigateTo({ url: `/pages/course-detail/detail?id=${id}` })
+  }
+})

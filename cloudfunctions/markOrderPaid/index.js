@@ -1,18 +1,17 @@
-const cloud = require('wx-server-sdk');
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
-const db = cloud.database();
+const cloud = require('wx-server-sdk')
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+const db = cloud.database()
 
-/**
- * 将订单标记为已支付
- * event.orderId: 订单 ID
- */
-exports.main = async (event, context) => {
-  const { orderId } = event;
-  await db.collection('orders').doc(orderId).update({
-    data: {
-      status: 'paid',
-      paidAt: new Date(),
-    },
-  });
-  return { success: true };
-};
+exports.main = async (event) => {
+  const { orderId, outTradeNo } = event || {}
+  if (!orderId && !outTradeNo) return { code: -1, message: '缺少 orderId/outTradeNo' }
+
+  const where = orderId ? { _id: orderId } : { outTradeNo }
+  const r = await db.collection('orders').where(where).get()
+  if (!r.data || !r.data.length) return { code: -1, message: '订单不存在' }
+
+  await db.collection('orders').where(where).update({
+    data: { status: 'paid', paidAt: new Date(), payResult: { mock: true } }
+  })
+  return { code: 0, message: 'ok' }
+}

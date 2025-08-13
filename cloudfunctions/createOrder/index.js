@@ -1,31 +1,73 @@
-const cloud = require('wx-server-sdk');
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
-const db = cloud.database();
+const cloud = require('wx-server-sdk')
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+const db = cloud.database()
 
-/**
- * 创建订单
- * event.courseId: 要购买的课程 ID
- */
-exports.main = async (event, context) => {
-  const { courseId } = event;
-  const { OPENID } = cloud.getWXContext();
-  // 获取课程价格
-  const course = await db.collection('courses').doc(courseId).get();
-  const price = course.data.price;
-  // 构建订单号
-  const outTradeNo = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
-  const order = {
-    _openid: OPENID,
-    courseId: courseId,
-    outTradeNo: outTradeNo,
-    price: price,
-    status: 'pending',
-    createdAt: new Date(),
-  };
-  const addRes = await db.collection('orders').add({ data: order });
-  return {
-    orderId: addRes._id,
-    outTradeNo: outTradeNo,
-    price: price,
-  };
-};
+const crypto = require('crypto')
+const fetch = (...a) => import('node-fetch').then(({default:f})=>f(...a))
+
+const MCHID = process.env.MCHID
+const APPID = process.env.APPID
+const SERIAL_NO = process.env.SERIAL_NO
+const PRIVATE_KEY = (process.env.MCH_PRIVATE_KEY || '').replace(/\\n/g, '\n')
+const NOTIFY_URL = process.env.NOTIFY_URL
+
+function rsaSign(s){
+  const signer = crypto.createSign('RSA-SHA256'); signer.update(s); signer.end()
+  return signer.sign(PRIVATE_KEY, 'base64')
+}
+
+exports.main = async (event) => {
+  const { courseId } = event || {}
+  const { OPENID } = cloud.getWXContext()
+  if (!courseId) return { code:-1, message:'缺少 courseId' }
+
+  // 取课程
+  const c = await db.collection('courses').doc(courseId).get().catch(()=>null)
+  if (!c || !c.data) return { code:-1, message:'课程不存在' }
+  const total = Number(c.data.price || 0)
+
+  // 【兜底】支付没配置 → 直接走开发模式
+  const payNotReady = !MCHID || !APPID || !SERIAL_NO || !PRIVATE_KEY || !NOTIFY_URL
+  if (payNotReady) {
+    const outTradeNo = `O${Date.now()}${Math.floor(Math.random()*1000)}`
+    await db.collection('orders').add({
+      data:{ _openid: OPENID, outTradeNo, courseId, price: total, status:'pending', createdAt:new Date() }
+    })
+    return { code:0, data:{ devMock:true, outTradeNo } }  // 前端拿到后自行标记已支付
+  }
+
+  if (total < 1) return { code:-1, message:'金额必须≥1分' }
+
+  // —— 以下为正式 JSAPI 下单（之前给你的逻辑不变） ——
+  try{
+    const outTradeNo = `O${Date.now()}${Math.floor(Math.random()*1000)}`
+    await db.collection('orders').add({
+      data:{ _openid: OPENID, outTradeNo, courseId, price: total, status:'pending', createdAt:new Date() }
+    })
+
+    const url = 'https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi'
+    const body = {
+      appid: APPID, mchid: MCHID, description: c.data.title || '课程购买',
+      out_trade_no: outTradeNo, notify_url: NOTIFY_URL,
+      amount: { total, currency: 'CNY' }, payer: { openid: OPENID }
+    }
+    const nonce = crypto.randomBytes(16).toString('hex')
+    const ts = Math.floor(Date.now()/1000).toString()
+    const signMsg = `POST\n/v3/pay/transactions/jsapi\n${ts}\n${nonce}\n${JSON.stringify(body)}\n`
+    const signature = rsaSign(signMsg)
+    const auth = `WECHATPAY2-SHA256-RSA2048 mchid="${MCHID}",nonce_str="${nonce}",signature="${signature}",timestamp="${ts}",serial_no="${SERIAL_NO}"`
+
+    const resp = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json','Authorization':auth }, body:JSON.stringify(body) })
+    const data = await resp.json().catch(()=>({}))
+    if (!resp.ok || !data.prepay_id) return { code:-2, message: data.message || '统一下单失败', detail:data }
+
+    const pkg = `prepay_id=${data.prepay_id}`
+    const paySignStr = `${APPID}\n${ts}\n${nonce}\n${pkg}\n`
+    const paySign = rsaSign(paySignStr)
+
+    return { code:0, data:{ timeStamp:ts, nonceStr:nonce, package:pkg, signType:'RSA', paySign, outTradeNo } }
+  }catch(e){
+    console.error('createOrder error:', e)
+    return { code:-3, message:String(e && e.message || e) }
+  }
+}
