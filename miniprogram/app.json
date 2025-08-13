@@ -5,7 +5,8 @@
     "pages/checkout/checkout",
     "pages/my-courses/my-courses",
     "pages/profile/profile",
-    "pages/lesson/lesson"
+    "pages/lesson/lesson",
+    "pages/add-course/add-course"
   ],
   "window": {
     "navigationBarTitleText": "买课小程序",
