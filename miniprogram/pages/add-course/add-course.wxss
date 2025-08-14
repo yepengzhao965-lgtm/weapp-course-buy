@@ -1,0 +1,22 @@
+.container {
+  padding: 24rpx;
+}
+.field {
+  margin-bottom: 24rpx;
+  display: flex;
+  flex-direction: column;
+}
+.input {
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  padding: 12rpx;
+}
+.cover {
+  width: 200rpx;
+  height: 200rpx;
+  margin-top: 12rpx;
+}
+.submit {
+  background: #2563eb;
+  color: #fff;
+}

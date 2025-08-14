@@ -30,10 +30,19 @@ exports.main = async (event) => {
   const payNotReady = !MCHID || !APPID || !SERIAL_NO || !PRIVATE_KEY || !NOTIFY_URL
   if (payNotReady) {
     const outTradeNo = `O${Date.now()}${Math.floor(Math.random()*1000)}`
-    await db.collection('orders').add({
-      data:{ _openid: OPENID, outTradeNo, courseId, price: total, status:'pending', createdAt:new Date() }
+    const addRes = await db.collection('orders').add({
+      data:{
+        _openid: OPENID,
+        outTradeNo,
+        courseId,
+        price: total,
+        status:'paid',
+        paidAt:new Date(),
+        payResult:{ mock:true },
+        createdAt:new Date()
+      }
     })
-    return { code:0, data:{ devMock:true, outTradeNo } }  // 前端拿到后自行标记已支付
+    return { code:0, data:{ devMock:true, outTradeNo, orderId:addRes._id } }  // 已自动标记为已支付
   }
 
   if (total < 1) return { code:-1, message:'金额必须≥1分' }

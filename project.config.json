@@ -3,7 +3,7 @@
   "cloudfunctionRoot": "cloudfunctions/",
   "appid": "wxa0f64d0b318651e1",
   "compileType": "miniprogram",
-  "libVersion": "2.32.2",
+  "libVersion": "3.9.0",
   "condition": {
     "miniprogram": {
       "list": []

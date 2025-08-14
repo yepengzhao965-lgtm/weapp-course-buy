@@ -19,6 +19,7 @@
     </view>
 
     <button class="btn" style="margin-top:24rpx" bindtap="goMyCourses">我的课程</button>
+      <button class="btn" style="margin-top:12rpx" bindtap="goAddCourse">添加课程</button>
   </block>
 
   <!-- 未登录 -->
