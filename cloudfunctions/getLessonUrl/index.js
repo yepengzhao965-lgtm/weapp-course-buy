@@ -27,7 +27,14 @@ exports.main = async (event, context) => {
   // 获取课时
   const lessonRes = await db.collection('lessons').doc(lessonId).get();
   const lesson = lessonRes.data;
-  if (!lesson || !lesson.videoFileId) {
+  if (!lesson) {
+    throw new Error('NO_VIDEO');
+  }
+  // 确认课时属于传入的课程
+  if (lesson.courseId !== courseId) {
+    throw new Error('NOT_AUTHORIZED');
+  }
+  if (!lesson.videoFileId) {
     throw new Error('NO_VIDEO');
   }
   // 获取临时视频链接

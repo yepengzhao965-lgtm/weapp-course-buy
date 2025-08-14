@@ -9,6 +9,13 @@ const db = cloud.database();
  * @param {*} event 
  */
 exports.main = async (event, context) => {
-  const res = await db.collection('courses').get();
+  const page = Number(event.page) || 1;
+  const pageSize = Number(event.pageSize) || 10;
+  const offset = (page - 1) * pageSize;
+  const res = await db.collection('courses')
+    .orderBy('createdAt', 'desc')
+    .skip(offset)
+    .limit(pageSize)
+    .get();
   return res.data;
 };

@@ -1,3 +1,4 @@
+const app = getApp();
 Page({
   data: {
     title: '',
@@ -5,6 +6,12 @@ Page({
     price: '',
     cover: '',
     coverTemp: ''
+  },
+  onLoad() {
+    if (!app.globalData.isAdmin) {
+      wx.showToast({ title: '无权限', icon: 'none' });
+      wx.navigateBack();
+    }
   },
   onInput(e) {
     const field = e.currentTarget.dataset.field;

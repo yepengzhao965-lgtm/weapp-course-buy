@@ -1,5 +1,5 @@
 App({
-  globalData: { openid: '', version: '0.2.0', mockPay: true },
+  globalData: { openid: '', version: '0.2.0', mockPay: true, isAdmin: false },
 
   onLaunch() {
     if (!wx.cloud) {

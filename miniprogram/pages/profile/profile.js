@@ -4,7 +4,8 @@ Page({
   data: {
     user: null,
     openid: '',
-    editMode: false
+    editMode: false,
+    isAdmin: false
   },
 
   async onLoad() {
@@ -13,12 +14,43 @@ Page({
       this.setData({ openid })
       const db = wx.cloud.database()
       const got = await db.collection('users').doc(openid).get().catch(() => null)
-      if (got && got.data) this.setData({ user: got.data })
+      if (got && got.data) {
+        const isAdmin = got.data.role === 'admin'
+        this.setData({ user: got.data, isAdmin })
+        app.globalData.isAdmin = isAdmin
+      }
     } catch (e) {
       console.error(e)
       wx.showToast({ title: '登录初始化失败', icon: 'none' })
     }
   },
+ // 手机号授权：获取用户手机号并写入 users
+ async onGetPhoneNumber(e) {
+  const code = e?.detail?.code
+  if (!code) {
+    wx.showToast({ title: '已取消授权', icon: 'none' })
+    return
+  }
+  try {
+    const r = await wx.cloud.callFunction({ name: 'getPhoneNumber', data: { code } })
+    const phoneNumber = r?.result?.phoneNumber
+    if (!phoneNumber) {
+      wx.showToast({ title: '获取手机号失败', icon: 'none' })
+      return
+    }
+    const db = wx.cloud.database()
+    await db.collection('users').doc(this.data.openid).set({
+      data: { phoneNumber, createdAt: new Date() }
+    }).catch(async () => {
+      await db.collection('users').doc(this.data.openid).update({ data: { phoneNumber } })
+    })
+    this.setData({ user: { ...(this.data.user || {}), phoneNumber } })
+    wx.showToast({ title: '登录成功' })
+  } catch (err) {
+    console.error(err)
+    wx.showToast({ title: '登录失败', icon: 'none' })
+  }
+},
 
   // 微信授权：拿头像昵称并写入 users（docId = openid）
   onGetUserProfile() {
@@ -26,13 +58,18 @@ Page({
       desc: '用于完善用户资料',
       success: async (res) => {
         const { nickName, avatarUrl } = res.userInfo || {}
+        const role = app.globalData.isAdmin ? 'admin' : 'visitor'
         const db = wx.cloud.database()
         await db.collection('users').doc(this.data.openid).set({
-          data: { nickName, avatarUrl, createdAt: new Date() }
+          data: { nickName, avatarUrl, role, createdAt: new Date() }
         }).catch(async () => {
-          await db.collection('users').doc(this.data.openid).update({ data: { nickName, avatarUrl } })
+         
+          await db.collection('users').doc(this.data.openid).update({ data: { nickName, avatarUrl, role } })
         })
-        this.setData({ user: { nickName, avatarUrl } })
+       
+        const isAdmin = role === 'admin'
+        this.setData({ user: { nickName, avatarUrl, role }, isAdmin })
+        app.globalData.isAdmin = isAdmin
         wx.showToast({ title: '登录成功' })
       },
       fail: () => wx.showToast({ title: '已取消授权', icon: 'none' })
@@ -44,7 +81,8 @@ Page({
     try {
       const db = wx.cloud.database()
       await db.collection('users').doc(this.data.openid).remove().catch(()=>{})
-      this.setData({ user: null, editMode: false })
+      this.setData({ user: null, editMode: false, isAdmin: false })
+      app.globalData.isAdmin = false
       this.onGetUserProfile()
     } catch (e) {
       console.error(e)
@@ -70,8 +108,10 @@ Page({
       }).catch(async () => {
         await db.collection('users').doc(this.data.openid).update({ data: this.data.user })
       })
+      const isAdmin = (this.data.user?.role === 'admin')
+      app.globalData.isAdmin = isAdmin
       wx.showToast({ title: '已保存' })
-      this.setData({ editMode: false })
+      this.setData({ editMode: false, isAdmin })
     } catch (e) {
       console.error(e)
       wx.showToast({ title: '保存失败', icon: 'none' })
