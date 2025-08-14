@@ -55,6 +55,6 @@ Page({
   goDetail(e) {
     const id = e.currentTarget.dataset.id
     if (!id) return
-    wx.navigateTo({ url: `/pages/course-detail/detail?id=${id}` })
+    wx.navigateTo({ url: `/pages/course-detail/detail?courseId=${id}` })
   }
 })

@@ -7,10 +7,23 @@ const db = cloud.database();
  * @param {*} event
  */
 exports.main = async (event, context) => {
+  const { OPENID, CLIENTIP } = cloud.getWXContext();
+  const admins = (process.env.ADMIN_OPENIDS || '').split(',').filter(Boolean);
+  const allowedIps = (process.env.ALLOWED_IPS || '').split(',').filter(Boolean);
+  if ((allowedIps.length && !allowedIps.includes(CLIENTIP)) ||
+      (admins.length && !admins.includes(OPENID))) {
+    console.error('Unauthorized invoke', { OPENID, CLIENTIP });
+    return { code: -1 };
+  }
   const { title, brief, price, cover } = event;
   if (!title) {
     return { error: 'missing title' };
   }
+    // 查询是否已存在同名课程，避免重复添加
+    const exist = await db.collection('courses').where({ title }).get();
+    if (exist.data.length > 0) {
+      return { error: 'duplicate title', id: exist.data[0]._id };
+    }
   const data = {
     title,
     brief,

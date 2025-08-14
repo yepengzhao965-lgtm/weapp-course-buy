@@ -7,6 +7,14 @@ const db = cloud.database();
  * 创建两门课程和一些课时
  */
 exports.main = async (event, context) => {
+  const { OPENID, CLIENTIP } = cloud.getWXContext();
+  const admins = (process.env.ADMIN_OPENIDS || '').split(',').filter(Boolean);
+  const allowedIps = (process.env.ALLOWED_IPS || '').split(',').filter(Boolean);
+  if ((allowedIps.length && !allowedIps.includes(CLIENTIP)) ||
+      (admins.length && !admins.includes(OPENID))) {
+    console.error('Unauthorized invoke', { OPENID, CLIENTIP });
+    return { code: -1 };
+  }
   const courses = [
     {
       title: '小程序入门课程',
@@ -22,21 +30,35 @@ exports.main = async (event, context) => {
     },
   ];
   for (const c of courses) {
-    const addRes = await db.collection('courses').add({ data: c });
-    const courseId = addRes._id;
-    // 创建 3 节课
+    // 查询是否已存在同名课程，避免重复插入
+    const existCourse = await db.collection('courses').where({ title: c.title }).get();
+    let courseId;
+    if (existCourse.data.length > 0) {
+      courseId = existCourse.data[0]._id;
+    } else {
+      const addRes = await db.collection('courses').add({ data: c });
+      courseId = addRes._id;
+    }
+    // 创建 3 节课，同时检查是否已存在
     for (let i = 1; i <= 3; i++) {
-      await db.collection('lessons').add({
-        data: {
-          courseId: courseId,
-          title: `${c.title} 第${i}节`,
-          order: i,
-          duration: 600,
-          // 上传视频后将 videoFileId 更新为云存储fileID
-          videoFileId: '',
-          createdAt: new Date(),
-        },
-      });
+      const lessonTitle = `${c.title} 第${i}节`;
+      const existLesson = await db
+        .collection('lessons')
+        .where({ courseId, title: lessonTitle })
+        .get();
+      if (existLesson.data.length === 0) {
+        await db.collection('lessons').add({
+          data: {
+            courseId,
+            title: lessonTitle,
+            order: i,
+            duration: 600,
+            // 上传视频后将 videoFileId 更新为云存储fileID
+            videoFileId: '',
+            createdAt: new Date(),
+          },
+        });
+      }
     }
   }
   return { success: true };
