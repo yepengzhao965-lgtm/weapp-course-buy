@@ -3,7 +3,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 
 const crypto = require('crypto')
-const fetch = (...a) => import('node-fetch').then(({default:f})=>f(...a))
+const fetch = require('node-fetch')
 
 const MCHID = process.env.MCHID
 const APPID = process.env.APPID
