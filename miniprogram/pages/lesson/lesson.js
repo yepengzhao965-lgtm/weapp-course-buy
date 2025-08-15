@@ -26,8 +26,16 @@ Page({
       });
     }).catch(err => {
       console.error(err);
-      this.setData({ authorized: false });
-      wx.showToast({ title: '请先购买课程', icon: 'none' });
+      let message = '加载失败，请稍后重试';
+      let authorized = true;
+      if (err.message === 'NOT_AUTHORIZED') {
+        message = '请先购买课程';
+        authorized = false;
+      } else if (err.message === 'NO_VIDEO') {
+        message = '视频资源不存在';
+      }
+      this.setData({ authorized });
+      wx.showToast({ title: message, icon: 'none' });
     }).finally(() => {
       wx.hideLoading();
     });

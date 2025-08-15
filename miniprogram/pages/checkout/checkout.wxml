@@ -4,6 +4,6 @@
     <view class="subtitle">{{course.brief}}</view>
     <view class="price">应付金额：￥{{course.displayPrice}}</view>
     <button wx:if="{{!isPaid}}" type="primary" bindtap="createOrder" style="margin-top: 24rpx;">立即支付</button>
-    <view wx:else style="margin-top: 24rpx; color: #67c23a;">购买成功！</view>
+    <view wx:else style="margin-top: 24rpx; color: #67c23a;">您已购买该课程！</view>
   </view>
 </view>

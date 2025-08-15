@@ -19,6 +19,7 @@ Page({
     }
     this.setData({ courseId });
     await this.loadCourse();
+    await this.checkOwned();
   },
 
   async loadCourse() {
@@ -35,8 +36,29 @@ Page({
       wx.hideLoading();
     }
   },
-
+  async checkOwned() {
+    try {
+      const openid = await app.ensureOpenid();
+      if (!openid) return;
+      const db = wx.cloud.database();
+      const r = await db.collection('orders').where({
+        _openid: openid,
+        courseId: this.data.courseId,
+        status: 'paid'
+      }).limit(1).get();
+      if (r.data && r.data.length) {
+        this.setData({ isPaid: true });
+        wx.showToast({ title: '您已购买该课程', icon: 'none' });
+      }
+    } catch (e) {
+      console.error('checkOwned error:', e);
+    }
+  },
   async createOrder() {
+    if (this.data.isPaid) {
+      wx.showToast({ title: '您已购买该课程', icon: 'none' });
+      return;
+    }
     if (this.data.paying) return;
     this.setData({ paying: true });
 

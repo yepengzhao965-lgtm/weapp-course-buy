@@ -10,6 +10,7 @@ const APPID = process.env.APPID
 const SERIAL_NO = process.env.SERIAL_NO
 const PRIVATE_KEY = (process.env.MCH_PRIVATE_KEY || '').replace(/\\n/g, '\n')
 const NOTIFY_URL = process.env.NOTIFY_URL
+const DEV_MOCK_PAY = (process.env.DEV_MOCK_PAY || '').toLowerCase() === 'true'
 
 function rsaSign(s){
   const signer = crypto.createSign('RSA-SHA256'); signer.update(s); signer.end()
@@ -29,6 +30,7 @@ exports.main = async (event) => {
   // 【兜底】支付没配置 → 直接走开发模式
   const payNotReady = !MCHID || !APPID || !SERIAL_NO || !PRIVATE_KEY || !NOTIFY_URL
   if (payNotReady) {
+    if (!DEV_MOCK_PAY) return { code:-1, message: '支付未配置' }
     const outTradeNo = `O${Date.now()}${Math.floor(Math.random()*1000)}`
     const addRes = await db.collection('orders').add({
       data:{

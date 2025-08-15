@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk');
+const { isAuthorized } = require('../common/auth');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
@@ -8,11 +9,7 @@ const db = cloud.database();
  */
 exports.main = async (event, context) => {
   const { OPENID, CLIENTIP } = cloud.getWXContext();
-  const admins = (process.env.ADMIN_OPENIDS || '').split(',').filter(Boolean);
-  const allowedIps = (process.env.ALLOWED_IPS || '').split(',').filter(Boolean);
-  if ((allowedIps.length && !allowedIps.includes(CLIENTIP)) ||
-      (admins.length && !admins.includes(OPENID))) {
-    console.error('Unauthorized invoke', { OPENID, CLIENTIP });
+  if (!isAuthorized(OPENID, CLIENTIP)) {
     return { code: -1 };
   }
   const courses = [

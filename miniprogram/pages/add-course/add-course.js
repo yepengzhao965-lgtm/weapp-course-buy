@@ -22,7 +22,12 @@ Page({
       count: 1,
       success: chooseRes => {
         const filePath = chooseRes.tempFilePaths[0];
-        const cloudPath = 'course-covers/' + Date.now() + '-' + Math.random().toString(36).slice(2) + filePath.match(/\.[^.]+$/)[0];
+        const match = filePath.match(/\.[^.]+$/);
+        if (!match) {
+          wx.showToast({ title: '无法识别文件类型', icon: 'none' });
+          return;
+        }
+        const cloudPath = 'course-covers/' + Date.now() + '-' + Math.random().toString(36).slice(2) + match[0];
         wx.cloud.uploadFile({
           cloudPath,
           filePath,
