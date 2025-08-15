@@ -11,7 +11,12 @@ App({
 
     // 可选：从本地恢复 openid，减少云函数调用
     const cached = wx.getStorageSync('openid');
-    if (cached) this.globalData.openid = cached;
+    if (cached) {
+      this.globalData.openid = cached;
+    } else {
+      // 无缓存时调用云函数获取 openid
+      this.ensureOpenid();
+    }
   },
 
   // 全局确保拿到 openid，并缓存
@@ -24,3 +29,4 @@ App({
     return openid;
   }
 });
+
