@@ -58,17 +58,18 @@ Page({
       desc: '用于完善用户资料',
       success: async (res) => {
         const { nickName, avatarUrl } = res.userInfo || {}
-        const role = app.globalData.isAdmin ? 'admin' : 'visitor'
         const db = wx.cloud.database()
         await db.collection('users').doc(this.data.openid).set({
-          data: { nickName, avatarUrl, role, createdAt: new Date() }
+          data: { nickName, avatarUrl, role: 'visitor', createdAt: new Date() }
         }).catch(async () => {
          
-          await db.collection('users').doc(this.data.openid).update({ data: { nickName, avatarUrl, role } })
+          await db.collection('users').doc(this.data.openid).update({ data: { nickName, avatarUrl } })
         })
        
-        const isAdmin = role === 'admin'
-        this.setData({ user: { nickName, avatarUrl, role }, isAdmin })
+        const got = await db.collection('users').doc(this.data.openid).get().catch(() => null)
+        const user = got?.data || { nickName, avatarUrl }
+        const isAdmin = user.role === 'admin'
+        this.setData({ user, isAdmin })
         app.globalData.isAdmin = isAdmin
         wx.showToast({ title: '登录成功' })
       },
@@ -103,15 +104,17 @@ Page({
   async saveProfile() {
     try {
       const db = wx.cloud.database()
-      await db.collection('users').doc(this.data.openid).set({
-        data: { ...(this.data.user || {}), updatedAt: new Date() }
-      }).catch(async () => {
-        await db.collection('users').doc(this.data.openid).update({ data: this.data.user })
+      const { nickName, avatarUrl } = this.data.user || {}
+      const data = { nickName, avatarUrl, updatedAt: new Date() }
+      await db.collection('users').doc(this.data.openid).update({ data }).catch(async () => {
+        await db.collection('users').doc(this.data.openid).set({ data: { ...data, role: 'visitor', createdAt: new Date() } })
       })
-      const isAdmin = (this.data.user?.role === 'admin')
+      const got = await db.collection('users').doc(this.data.openid).get().catch(() => null)
+      const user = got?.data || { nickName, avatarUrl }
+      const isAdmin = user.role === 'admin'
       app.globalData.isAdmin = isAdmin
       wx.showToast({ title: '已保存' })
-      this.setData({ editMode: false, isAdmin })
+      this.setData({ editMode: false, isAdmin, user })
     } catch (e) {
       console.error(e)
       wx.showToast({ title: '保存失败', icon: 'none' })

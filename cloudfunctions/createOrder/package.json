@@ -3,5 +3,8 @@
   "version": "1.0.0",
   "description": "创建课程订单",
   "main": "index.js",
-  "dependencies": { "wx-server-sdk": "latest"}
+  "dependencies": {
+    "wx-server-sdk": "latest",
+    "node-fetch": "^3.3.1"
+  }
 }

@@ -42,7 +42,10 @@ exports.main = async (event, context) => {
     fileList: [lesson.videoFileId],
   });
   const urlInfo = urlRes.fileList[0];
+  if (!urlInfo || urlInfo.status !== 0 || !urlInfo.tempFileURL) {
+    throw new Error('FILE_FETCH_FAILED');
+  }
   return {
     videoUrl: urlInfo.tempFileURL,
-  };
+};
 };
