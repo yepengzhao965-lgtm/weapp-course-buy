@@ -1,29 +1,76 @@
+<!-- 个人中心页面（本地修改版）
+     当用户已登录时显示个人资料、编辑和重新授权按钮；
+     当未登录时提供手机号一键登录和微信授权登录两种方式。-->
 <view class="container">
   <!-- 已登录 -->
   <block wx:if="{{user}}">
-    <image class="avatar" src="{{user.avatarUrl}}" mode="aspectFill" wx:if="{{user.avatarUrl}}"></image>
-    <view class="nickname">{{user.nickName || user.phoneNumber}}</view>
-    <view class="tip" wx:if="{{user.nickName === '微信用户'}}">当前为微信默认昵称，可点击下方按钮重新授权或自行编辑</view>
+    <image
+      class="avatar"
+      src="{{user.avatarUrl}}"
+      mode="aspectFill"
+      wx:if="{{user.avatarUrl}}"
+    ></image>
+    <view class="nickname">
+      {{user.nickName || user.phoneNumber}}
+    </view>
+    <view class="tip" wx:if="{{user.nickName === '微信用户'}}">
+      当前为微信默认昵称，可点击下方按钮重新授权或自行编辑
+    </view>
 
     <!-- 操作按钮 -->
-    <view style="margin-top:16rpx;display:flex;gap:16rpx;">
-      <button class="btn" bindtap="toggleEdit">{{editMode ? '完成编辑' : '编辑资料'}}</button>
+    <view style="margin-top: 16rpx; display: flex; gap: 16rpx;">
+      <button class="btn" bindtap="toggleEdit">
+        {{editMode ? '完成编辑' : '编辑资料'}}
+      </button>
       <button class="btn secondary" bindtap="reAuth">重新授权</button>
     </view>
 
     <!-- 编辑区 -->
-    <view wx:if="{{editMode}}" style="width:100%;margin-top:16rpx;">
-      <button open-type="chooseAvatar" bindchooseavatar="onChooseAvatar" class="btn">更换头像</button>
-      <input class="input" placeholder="输入昵称" value="{{user.nickName}}" bindinput="onNickInput"/>
-      <button class="btn" style="margin-top:12rpx" bindtap="saveProfile">保存资料</button>
+    <view wx:if="{{editMode}}" style="width: 100%; margin-top: 16rpx;">
+      <button open-type="chooseAvatar" bindchooseavatar="onChooseAvatar" class="btn">
+        更换头像
+      </button>
+      <input
+        class="input"
+        placeholder="输入昵称"
+        value="{{user.nickName}}"
+        bindinput="onNickInput"
+      />
+      <button class="btn" style="margin-top: 12rpx" bindtap="saveProfile">
+        保存资料
+      </button>
     </view>
 
-    <button class="btn" style="margin-top:24rpx" bindtap="goMyCourses">我的课程</button>
-    <button class="btn" wx:if="{{isAdmin}}" style="margin-top:12rpx" bindtap="goAddCourse">添加课程</button>
+    <button class="btn" style="margin-top: 24rpx" bindtap="goMyCourses">
+      我的课程
+    </button>
+    <button
+      class="btn"
+      wx:if="{{isAdmin}}"
+      style="margin-top: 12rpx"
+      bindtap="goAddCourse"
+    >
+      添加课程
+    </button>
   </block>
 
   <!-- 未登录 -->
   <block wx:else>
-    <button class="btn" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber">一键登录</button>
+    <!-- 手机号一键登录：通过 getPhoneNumber 调用 getPhoneNumber 云函数获取手机号 -->
+    <button
+      class="btn"
+      open-type="getPhoneNumber"
+      bindgetphonenumber="onGetPhoneNumber"
+    >
+      手机号一键登录
+    </button>
+    <!-- 微信授权登录：调用 onGetUserProfile 使用 wx.getUserProfile 获取头像昵称 -->
+    <button
+      class="btn secondary"
+      style="margin-top: 12rpx"
+      bindtap="onGetUserProfile"
+    >
+      微信授权登录
+    </button>
   </block>
 </view>
