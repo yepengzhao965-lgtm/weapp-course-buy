@@ -1,0 +1,6 @@
+<view style="padding:24rpx">
+  <button bindtap="testLogin">测试 login 云函数</button>
+  <view style="margin-top:12rpx">openid: {{openid}}</view>
+  <button bindtap="testEnsure" style="margin-top:16rpx">写库 ensureUser(nickName=诊断用户)</button>
+  <view style="margin-top:12rpx">ensureUser：{{ensureOk ? 'OK' : '未调或失败'}} </view>
+</view>
