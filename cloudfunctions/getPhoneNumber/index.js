@@ -1,12 +1,12 @@
-const cloud = require('wx-server-sdk')
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+const cloud = require('wx-server-sdk');
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 exports.main = async (event) => {
-  const { code } = event || {}
+  const { code } = event || {};
   try {
-    const res = await cloud.openapi.phonenumber.getPhoneNumber({ code })
-    return { phoneNumber: res?.phoneInfo?.phoneNumber || '' }
+    const res = await cloud.openapi.phonenumber.getPhoneNumber({ code });
+    return { phoneNumber: res?.phoneInfo?.phoneNumber || '' };
   } catch (err) {
-    return { err }
+    return { err };
   }
-}
+};
