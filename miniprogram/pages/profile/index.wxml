@@ -1,0 +1,10 @@
+<view class="container">
+  <view class="card">
+    <view class="avatar-wrap">
+      <image class="avatar" src="{{user && user.avatarUrl ? user.avatarUrl : '/images/avatar-default.png'}}"></image>
+    </view>
+    <view class="title">微信用户</view>
+    <view class="desc">用于同步头像昵称并开通“已购课程”。</view>
+    <button class="btn" bindtap="onWeChatLoginTap" loading="{{busy}}" disabled="{{busy}}">一键登录</button>
+  </view>
+</view>

@@ -1,9 +1,12 @@
-<view class="page">
-  <view class="card" wx:for="{{myCourses}}" wx:key="courseId" bindtap="goCourse" data-id="{{item.courseId}}">
-    <view style="display:flex;justify-content:space-between">
-      <view>{{item.title}}</view>
-      <view class="price">已购</view>
+<view class="container">
+  <view wx:if="{{list.length===0}}" class="empty">暂无已购课程</view>
+  <block wx:for="{{list}}" wx:key="outTradeNo">
+    <view class="item">
+      <image class="cover" src="{{item.cover||''}}"></image>
+      <view class="meta">
+        <view class="title">{{item.title}}</view>
+        <view class="sub">已购买 · ￥{{item.priceYuan}}</view>
+      </view>
     </view>
-  </view>
-  <button class="btn secondary" bindtap="goHome">去逛逛</button>
+  </block>
 </view>

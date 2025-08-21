@@ -1,2 +1,17 @@
-import { callFunction } from '../../utils/cloud'
-Page({ data:{ myCourses:[] }, async onShow(){ try{ const r = await callFunction('orders',{ action:'myCourses' }); const list = (r && r.result && r.result.list) ? r.result.list : []; this.setData({ myCourses:list }) }catch(e){ console.error(e) } }, goHome(){ wx.reLaunch({ url:'/pages/home/index' }) }, goCourse(e){ const id = e.currentTarget.dataset.id; wx.navigateTo({ url:'/pages/course/detail?id='+id }) } })
+Page({
+  data:{ list:[], busy:false },
+  onShow(){ this.fetch && this.fetch() },
+  async fetch(){
+    if(this.data.busy) return; this.setData({ busy:true })
+    try{
+      const r = await wx.cloud.callFunction({ name:'orders', data:{ action:'mine' } })
+      let list = (r && r.result && r.result.list) ? r.result.list : []
+      list = list.map(x => { x.priceYuan = (Number(x.amount||0)/100).toFixed(2); return x })
+      this.setData({ list })
+    }catch(e){
+      console.error(e); wx.showToast({ title:'加载失败', icon:'none' })
+    }finally{
+      this.setData({ busy:false })
+    }
+  }
+})

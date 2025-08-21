@@ -1,20 +1,30 @@
 {
-  "entryPagePath": "pages/home/index",
   "pages": [
-    "pages/index/index",
     "pages/home/index",
-    "pages/course/detail",
-    "pages/checkout/index",
     "pages/my/index",
-    "pages/diag-whoami/index"
+    "pages/profile/index"
   ],
   "window": {
     "navigationBarTitleText": "课程商城",
-    "navigationBarBackgroundColor": "#ffffff",
     "navigationBarTextStyle": "black",
-    "backgroundTextStyle": "dark",
-    "enablePullDownRefresh": false
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundTextStyle": "dark"
   },
-  "lazyCodeLoading": "requiredComponents",
-  "style": "v2"
+  "tabBar": {
+    "color": "#666666",
+    "selectedColor": "#07c160",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "课程"
+      },
+      {
+        "pagePath": "pages/my/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
 }
