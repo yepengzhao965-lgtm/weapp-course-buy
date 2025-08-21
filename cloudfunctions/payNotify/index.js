@@ -1,79 +1,67 @@
-/* 云函数路径：cloudfunctions/payNotify/index.js */
-
+// HTTP 触发云函数，处理微信支付 v3 异步通知
 const cloud = require('wx-server-sdk')
 const crypto = require('crypto')
-
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
+const orders = db.collection('orders') // 若你的集合名为 'order'，改这里
 
-// 必须在函数配置中设置 32 字节的 API_V3_KEY 以解密通知
-const API_V3_KEY = process.env.API_V3_KEY
+const API_V3_KEY = (process.env.API_V3_KEY || '').trim()  // 32字节
+// 可选：如果你要校验微信平台签名，可把平台证书 PEM 放到 WX_PLATFORM_CERT 环境变量
+const WX_PLATFORM_CERT = (process.env.WX_PLATFORM_CERT || '').trim()
 
-exports.main = async (event) => {
-  // 返回响应的帮助函数
-  const httpResponse = (statusCode, bodyObj) => {
-    return {
-      statusCode,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(bodyObj)
-    }
+function decryptResource(resource){
+  const { associated_data, nonce, ciphertext } = resource
+  const key = Buffer.from(API_V3_KEY, 'utf8')
+  const buf = Buffer.from(ciphertext, 'base64')
+  const authTag = buf.slice(buf.length - 16)
+  const data = buf.slice(0, buf.length - 16)
+  const decipher = crypto.createDecipheriv('aes-256-gcm', key, nonce)
+  if (associated_data) decipher.setAAD(Buffer.from(associated_data, 'utf8'))
+  decipher.setAuthTag(authTag)
+  const decoded = Buffer.concat([decipher.update(data), decipher.final()])
+  return JSON.parse(decoded.toString('utf8'))
+}
+
+// 简易签名校验（可选）
+function verifySignature(headers, body){
+  if (!WX_PLATFORM_CERT) return true // 未配置平台证书则跳过校验
+  try{
+    const serial = headers['wechatpay-serial'] || headers['Wechatpay-Serial'] || ''
+    const nonce = headers['wechatpay-nonce'] || headers['Wechatpay-Nonce'] || ''
+    const timestamp = headers['wechatpay-timestamp'] || headers['Wechatpay-Timestamp'] || ''
+    const signature = headers['wechatpay-signature'] || headers['Wechatpay-Signature'] || ''
+    const message = `${timestamp}\n${nonce}\n${body}\n`
+    const verify = crypto.createVerify('RSA-SHA256')
+    verify.update(message); verify.end()
+    const cert = WX_PLATFORM_CERT
+    return verify.verify(cert, signature, 'base64')
+  }catch(e){ return false }
+}
+
+exports.main = async (event, context) => {
+  const headers = event.headers || {}
+  const bodyStr = typeof event.body === 'string' ? event.body : JSON.stringify(event.body || {})
+  if (!API_V3_KEY){
+    return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code:'FAIL', message:'API_V3_KEY missing' }) }
+  }
+  if (!verifySignature(headers, bodyStr)){
+    return { statusCode: 401, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code:'FAIL', message:'signature verify fail' }) }
   }
 
-  try {
-    // WeChat Pay 通知体是 JSON 字符串
-    const body = typeof event.body === 'string' ? JSON.parse(event.body) : (event.body || {})
-    const resource = body.resource || {}
-    if (!resource.ciphertext || !resource.nonce) {
-      return httpResponse(400, { code: 'INVALID_NOTIFICATION' })
-    }
-
-    if (!API_V3_KEY || API_V3_KEY.length !== 32) {
-      console.error('API_V3_KEY 未配置或长度不正确')
-      return httpResponse(500, { code: 'NO_API_V3_KEY' })
-    }
-
-    // 解密过程：AES‑256‑GCM
-    const key      = Buffer.from(API_V3_KEY, 'utf8')
-    const nonceBuf = Buffer.from(resource.nonce, 'utf8')
-    const cipher   = Buffer.from(resource.ciphertext, 'base64')
-    const data     = cipher.slice(0, cipher.length - 16)
-    const tag      = cipher.slice(cipher.length - 16)
-    const decipher = crypto.createDecipheriv('aes-256-gcm', key, nonceBuf)
-    decipher.setAuthTag(tag)
-    if (resource.associated_data) {
-      decipher.setAAD(Buffer.from(resource.associated_data, 'utf8'))
-    }
-    const decrypted = Buffer.concat([decipher.update(data), decipher.final()])
-    const payResult = JSON.parse(decrypted.toString())
-
-    // 只处理支付成功的通知
-    if (payResult.trade_state !== 'SUCCESS') {
-      return httpResponse(200, { code: 'IGNORED' })
-    }
-    const outTradeNo = payResult.out_trade_no
-    if (!outTradeNo) {
-      return httpResponse(400, { code: 'NO_OUT_TRADE_NO' })
-    }
-
-    // 查找订单并更新
-    const orderRes = await db.collection('orders')
-      .where({ outTradeNo })
-      .limit(1)
-      .get()
-    if (!orderRes.data || !orderRes.data.length) {
-      return httpResponse(200, { code: 'ORDER_NOT_FOUND' })
-    }
-    const orderDoc = orderRes.data[0]
-    await db.collection('orders').doc(orderDoc._id).update({
-      data: {
-        status : 'paid',
-        paidAt : new Date(),
-        payResult  // 保存支付回调完整信息，方便对账
+  try{
+    const notify = JSON.parse(bodyStr)
+    const resource = decryptResource(notify.resource)
+    // resource.trade_state === 'SUCCESS'
+    const outTradeNo = resource.out_trade_no
+    const transactionId = resource.transaction_id || ''
+    if (resource.trade_state === 'SUCCESS' && outTradeNo){
+      const r = await orders.where({ outTradeNo }).get()
+      if (r.data.length){
+        await orders.doc(r.data[0]._id).update({ data:{ status:'PAID', transactionId, updatedAt:new Date() } })
       }
-    })
-    return httpResponse(200, { code: 'SUCCESS' })
-  } catch (err) {
-    console.error('payNotify error:', err)
-    return httpResponse(500, { code: 'ERROR', message: err.message || String(err) })
+    }
+    return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code:'SUCCESS', message:'成功' }) }
+  }catch(e){
+    return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code:'FAIL', message: e.message || String(e) }) }
   }
 }

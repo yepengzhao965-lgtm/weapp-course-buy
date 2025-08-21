@@ -1,1 +1,1 @@
-{ "name":"prepay", "version":"1.0.0", "dependencies": { "wx-server-sdk":"latest" } }
+{ "name":"prepay", "version":"2.0.0", "dependencies": { "wx-server-sdk":"latest" } }
