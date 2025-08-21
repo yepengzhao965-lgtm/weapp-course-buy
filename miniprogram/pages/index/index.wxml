@@ -1,14 +1,1 @@
-<view class="container">
-  <block wx:if="{{courses.length > 0}}">
-    <block wx:for="{{courses}}" wx:key="_id">
-      <view class="card" data-id="{{item._id}}" bindtap="goDetail">
-        <view class="title">{{item.title}}</view>
-        <view class="subtitle">{{item.brief}}</view>
-        <view class="price">价格：￥{{item.displayPrice}}</view>
-      </view>
-    </block>
-  </block>
-  <view wx:else>
-    暂无课程
-  </view>
-</view>
+<text>正在进入首页…</text>

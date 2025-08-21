@@ -1,0 +1,1 @@
+<view style='padding:24rpx'><view>ENV_ID: {{envId || '未设置'}}</view><view style='margin-top:12rpx'>状态：{{status}}</view><view style='word-break:break-all;margin-top:12rpx'>结果：{{result}}</view><button style='margin-top:24rpx' bindtap='run'>重新诊断</button></view>

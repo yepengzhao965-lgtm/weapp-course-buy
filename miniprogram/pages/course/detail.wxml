@@ -1,0 +1,15 @@
+<view class="page" wx:if="{{course}}">
+  <image src="{{course.cover}}" mode="aspectFill" style="width:100%;height:360rpx;border-radius:12rpx"/>
+  <view class="card">
+    <view style="font-weight:700;font-size:36rpx">{{course.title}}</view>
+    <view style="color:#666;margin-top:8rpx">{{course.subtitle}}</view>
+    <view class="price" style="margin-top:8rpx">￥{{course.priceYuan}}</view>
+  </view>
+  <view class="card">
+    <view style="font-weight:600;margin-bottom:8rpx">课程介绍</view>
+    <view style="color:#444;white-space:pre-wrap">{{course.description}}</view>
+  </view>
+  <view style="position:fixed;left:0;right:0;bottom:0;background:#fff;padding:16rpx;box-shadow:0 -4rpx 16rpx rgba(0,0,0,.06)">
+    <button class="btn" bindtap="buy">立即购买</button>
+  </view>
+</view>

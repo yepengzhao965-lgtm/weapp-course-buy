@@ -1,1 +1,1 @@
-{ "name": "ensureUser", "version": "1.0.0", "dependencies": { "wx-server-sdk": "latest" } }
+{ "name":"ensureUser", "version":"1.0.0", "dependencies": { "wx-server-sdk":"latest" } }

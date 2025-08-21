@@ -1,0 +1,1 @@
+export async function callFunction(name, data, opt){ if(!name||typeof name!=='string'){ wx.showToast({title:'内部错误(name缺失)',icon:'none'}); throw new Error('FunctionName missing') } try{ return await wx.cloud.callFunction({ name, data, config:(opt&&opt.config)||{} }) }catch(e){ console.error('cloud.callFunction error:', name, e); throw e } }

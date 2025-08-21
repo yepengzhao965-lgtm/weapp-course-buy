@@ -1,0 +1,10 @@
+<view class="page" wx:if="{{course}}">
+  <view class="card">
+    <view style="font-weight:700;font-size:32rpx">{{course.title}}</view>
+    <view style="display:flex;justify-content:space-between;margin-top:8rpx">
+      <view>应付金额</view>
+      <view class="price">￥{{course.priceYuan}}</view>
+    </view>
+  </view>
+  <button class="btn" bindtap="pay" loading="{{_busy}}" disabled="{{_busy}}">微信支付</button>
+</view>

@@ -1,0 +1,9 @@
+<view class="page">
+  <view class="card" wx:for="{{myCourses}}" wx:key="courseId" bindtap="goCourse" data-id="{{item.courseId}}">
+    <view style="display:flex;justify-content:space-between">
+      <view>{{item.title}}</view>
+      <view class="price">已购</view>
+    </view>
+  </view>
+  <button class="btn secondary" bindtap="goHome">去逛逛</button>
+</view>

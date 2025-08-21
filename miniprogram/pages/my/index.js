@@ -1,0 +1,2 @@
+import { callFunction } from '../../utils/cloud'
+Page({ data:{ myCourses:[] }, async onShow(){ try{ const r = await callFunction('orders',{ action:'myCourses' }); const list = (r && r.result && r.result.list) ? r.result.list : []; this.setData({ myCourses:list }) }catch(e){ console.error(e) } }, goHome(){ wx.reLaunch({ url:'/pages/home/index' }) }, goCourse(e){ const id = e.currentTarget.dataset.id; wx.navigateTo({ url:'/pages/course/detail?id='+id }) } })
