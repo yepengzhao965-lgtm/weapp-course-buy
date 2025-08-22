@@ -2,7 +2,7 @@
   "pages": [
     "pages/home/index",
     "pages/my/index",
-    "pages/profile/index"
+    "pages/profile/profile"
   ],
   "window": {
     "navigationBarTitleText": "课程商城",
