@@ -1,12 +1,27 @@
-<view class="container">
-  <view wx:if="{{list.length===0}}" class="empty">暂无已购课程</view>
-  <block wx:for="{{list}}" wx:key="outTradeNo">
-    <view class="item">
-      <image class="cover" src="{{item.cover||''}}"></image>
-      <view class="meta">
-        <view class="title">{{item.title}}</view>
-        <view class="sub">已购买 · ￥{{item.priceYuan}}</view>
+<view class="my-page">
+  <view class="header">
+    <block wx:if="{{!user}}">
+      <view class="desc">登录后可同步头像昵称并查看已购课程</view>
+      <button class="btn" bindtap="loginTap" loading="{{busy}}" disabled="{{busy}}">微信一键登录</button>
+    </block>
+    <block wx:else>
+      <view class="profile">
+        <image class="avatar" src="{{user.avatarUrl || '/images/avatar-default.png'}}" />
+        <view class="name">{{user.nickName || '微信用户'}}</view>
       </view>
-    </view>
-  </block>
+    </block>
+  </view>
+
+  <view class="purchased">
+    <view wx:if="{{list.length===0}}" class="empty">暂无已购课程</view>
+    <block wx:for="{{list}}" wx:key="outTradeNo">
+      <view class="item">
+        <image class="cover" src="{{item.cover||''}}"></image>
+        <view class="meta">
+          <view class="title">{{item.title}}</view>
+          <view class="sub">已购买 · ￥{{item.priceYuan}}</view>
+        </view>
+      </view>
+    </block>
+  </view>
 </view>
