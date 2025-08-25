@@ -1,4 +1,3 @@
-
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
@@ -19,7 +18,6 @@ exports.main = async (event, context) => {
     updatedAt: now
   }
 
-  // upsert by OPENID (doc id = OPENID)
   try {
     await users.doc(OPENID).update({ data: base })
   } catch (e) {

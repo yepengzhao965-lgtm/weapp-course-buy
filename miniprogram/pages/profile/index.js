@@ -9,24 +9,20 @@ Page({
     if(this.data.busy) return
     this.setData({ busy:true, diag:'' })
     try{
-      // ① wx.login
       const loginRes = await wx.login()
       this.log({ step:'wx.login', loginRes })
       if(!loginRes.code){ wx.showToast({ title:'无code', icon:'none' }); return }
 
-      // ② authLogin
       const cf = await wx.cloud.callFunction({ name:'authLogin', data:{ code: loginRes.code } })
       const auth = cf && cf.result || {}
       this.log({ step:'authLogin', auth })
       if(!auth.ok){ wx.showModal({ title:'authLogin失败', content: JSON.stringify(auth).slice(0,900), showCancel:false }); return }
       wx.setStorageSync('openid', auth.openid)
 
-      // ③ getUserProfile（必须点击触发）
       const gp = await wx.getUserProfile({ desc: '用于完善个人资料' })
       const profile = gp && gp.userInfo ? gp.userInfo : {}
       this.log({ step:'getUserProfile', profile })
 
-      // ④ ensureUser
       const eu = await wx.cloud.callFunction({ name:'ensureUser', data:{ profile } })
       const user = eu && eu.result && eu.result.user ? eu.result.user : null
       this.log({ step:'ensureUser', user })

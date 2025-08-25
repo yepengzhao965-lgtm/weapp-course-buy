@@ -15,14 +15,8 @@
     "selectedColor": "#07c160",
     "borderStyle": "black",
     "list": [
-      {
-        "pagePath": "pages/home/index",
-        "text": "课程"
-      },
-      {
-        "pagePath": "pages/my/index",
-        "text": "我的"
-      }
+      { "pagePath": "pages/home/index", "text": "课程" },
+      { "pagePath": "pages/my/index", "text": "我的" }
     ]
   },
   "style": "v2",

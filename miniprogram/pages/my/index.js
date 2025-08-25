@@ -1,4 +1,3 @@
-
 // pages/my/index.js
 Page({
   data:{ user:null, busy:false },

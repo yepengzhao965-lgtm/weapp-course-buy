@@ -4,7 +4,7 @@
     <block wx:if="{{!user}}">
       <view class="title">需要微信授权登录</view>
       <view class="desc">点击下方按钮完成授权并绑定账号</view>
-      <button class="btn" bindtap="onAuthLoginTap" loading="{{busy}}" disabled="{{busy}}">微信一键授权登录</button>
+      <button class="btn" bindtap="onAuthLoginTap" loading="{{busy}}" disabled="{{busy}}">微信验证登录</button>
       <view class="tools">
         <button class="mini" size="mini" bindtap="onCheckTap">检查环境</button>
         <text class="tips">（检查会显示 openid/云环境信息）</text>

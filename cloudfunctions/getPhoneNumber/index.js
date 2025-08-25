@@ -1,4 +1,3 @@
-
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
@@ -8,12 +7,10 @@ exports.main = async (event, context) => {
   const code = event && event.code
   if (!code) return { ok:false, msg:'missing code' }
 
-  // 调用 openapi 获取手机号
   const res = await cloud.openapi.phonenumber.getPhoneNumber({ code })
-  const phone = res && res.phoneInfo && (res.phoneInfo.phoneNumber || res.phoneInfo.phoneNumberPure || res.phoneNumber) || res.phoneNumber
+  const phone = (res && res.phoneInfo && (res.phoneInfo.phoneNumber || res.phoneInfo.phoneNumberPure)) || res.phoneNumber
   if (!phone) return { ok:false, msg:'no phone' }
 
-  // 存到 users
   const users = db.collection('users')
   const now = new Date()
   try {
