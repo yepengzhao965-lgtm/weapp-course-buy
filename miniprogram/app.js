@@ -1,18 +1,24 @@
-let ENV_ID = ''; let MOCK_PAY = true;
-try { const env = require('./env.js'); ENV_ID = env.ENV_ID || ''; MOCK_PAY = !!env.MOCK_PAY } catch(e){}
+// app.js
+let ENV_ID = '';
+try { const env = require('./env.js'); ENV_ID = env.ENV_ID || '' } catch(e){}
+
 App({
-  globalData: { openid:'', MOCK_PAY },
+  globalData: { openid: '' },
+
   onLaunch(){
     if (!wx.cloud) { console.error('基础库过低'); return }
     wx.cloud.init({ env: ENV_ID || wx.cloud.DYNAMIC_CURRENT_ENV, traceUser: true })
-    const cached = wx.getStorageSync('openid'); if (cached) this.globalData.openid = cached
-    this.ensureOpenid().catch(err => console.error('ensureOpenid failed', err))
-  },
-  async ensureOpenid(){
-    if (this.globalData.openid) return this.globalData.openid
-    const r = await wx.cloud.callFunction({ name: 'login', config: ENV_ID? {env:ENV_ID}:{} })
-    const openid = r && r.result && r.result.openid
-    if (openid){ this.globalData.openid = openid; wx.setStorageSync('openid', openid) }
-    return openid
+
+    // 隐私协议（官方建议）：需要时拉起，避免能力被拦截为 no permission
+    wx.getPrivacySetting({
+      success(res){
+        if (res.needAuthorization) {
+          wx.requirePrivacyAuthorize({
+            success(){ console.log('privacy ok') },
+            fail(){ console.warn('privacy rejected') }
+          })
+        }
+      }
+    })
   }
 })

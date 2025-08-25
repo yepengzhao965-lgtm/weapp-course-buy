@@ -5,19 +5,18 @@ const db = cloud.database()
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext()
   const code = event && event.code
-  if (!code) return { ok:false, msg:'missing code' }
+  if(!code) return { ok:false, msg:'missing code' }
 
+  // 官方 openapi：用 code 换手机号
   const res = await cloud.openapi.phonenumber.getPhoneNumber({ code })
   const phone = (res && res.phoneInfo && (res.phoneInfo.phoneNumber || res.phoneInfo.phoneNumberPure)) || res.phoneNumber
-  if (!phone) return { ok:false, msg:'no phone' }
+  if(!phone) return { ok:false, msg:'no phone' }
 
+  // 写库（users 表，主键用 OPENID）
   const users = db.collection('users')
   const now = new Date()
-  try {
-    await users.doc(OPENID).update({ data: { mobile: phone, mobileVerified: true, updatedAt: now } })
-  } catch (e) {
-    await users.doc(OPENID).set({ data: { _openid: OPENID, role:'buyer', createdAt: now, mobile: phone, mobileVerified: true, updatedAt: now } })
-  }
-  const got = await users.doc(OPENID).get()
-  return { ok:true, phone, user: got.data }
+  try { await users.doc(OPENID).update({ data: { mobile: phone, mobileVerified: true, updatedAt: now } }) }
+  catch { await users.doc(OPENID).set({ data: { _openid: OPENID, role:'buyer', createdAt: now, mobile: phone, mobileVerified: true, updatedAt: now } }) }
+
+  return { ok:true, phone, user: (await users.doc(OPENID).get()).data }
 }

@@ -4,8 +4,12 @@
     <view class="login-card">
       <view class="login-title">需要微信授权登录</view>
       <view class="login-desc">点击下方按钮完成授权并绑定账号</view>
-      <!-- 官方手机号授权弹窗 -->
-      <button class="login-btn" open-type="getPhoneNumber" bindgetphonenumber="onPhoneLogin" loading="{{busy}}" disabled="{{busy}}">微信验证登录</button>
+      <!-- 原生按钮，系统弹出“手机号验证” -->
+      <button class="login-btn"
+              open-type="getPhoneNumber"
+              bindgetphonenumber="onPhoneLogin"
+              loading="{{busy}}"
+              disabled="{{busy}}">微信验证登录</button>
     </view>
   </block>
 
@@ -14,9 +18,9 @@
       <image class="avatar" src="{{user.avatarUrl || '/images/avatar-default.png'}}" />
       <view class="name">{{user.nickName || '微信用户'}}</view>
       <view class="phone" wx:if="{{user.mobile}}">{{user.mobile}}</view>
-      <button class="mini" wx:if="{{!user.mobile}}" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber">绑定手机号</button>
+      <button class="mini" wx:if="{{!user.mobile}}"
+              open-type="getPhoneNumber"
+              bindgetphonenumber="onBindPhone">绑定手机号</button>
     </view>
   </block>
-
-  <view class="content"></view>
 </view>
