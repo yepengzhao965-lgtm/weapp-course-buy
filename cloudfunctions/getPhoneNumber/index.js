@@ -7,12 +7,10 @@ exports.main = async (event) => {
   const code = event && event.code
   if(!code) return { ok:false, msg:'missing code' }
 
-  // 官方 openapi：用 code 换手机号
   const res = await cloud.openapi.phonenumber.getPhoneNumber({ code })
   const phone = (res && res.phoneInfo && (res.phoneInfo.phoneNumber || res.phoneInfo.phoneNumberPure)) || res.phoneNumber
   if(!phone) return { ok:false, msg:'no phone' }
 
-  // 写库（users 表，主键用 OPENID）
   const users = db.collection('users')
   const now = new Date()
   try { await users.doc(OPENID).update({ data: { mobile: phone, mobileVerified: true, updatedAt: now } }) }

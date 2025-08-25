@@ -1,10 +1,9 @@
-<!-- pages/my/index.wxml -->
 <view class="my-page">
   <block wx:if="{{!user}}">
     <view class="login-card">
       <view class="login-title">需要微信授权登录</view>
       <view class="login-desc">点击下方按钮完成授权并绑定账号</view>
-      <!-- 原生按钮，系统弹出“手机号验证” -->
+      <!-- 原生按钮：会弹系统的手机号授权 -->
       <button class="login-btn"
               open-type="getPhoneNumber"
               bindgetphonenumber="onPhoneLogin"
