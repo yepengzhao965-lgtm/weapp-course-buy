@@ -2,7 +2,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 
-exports.main = async (event, context) => {
+exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext()
   const users = db.collection('users')
   const now = new Date()
@@ -18,11 +18,8 @@ exports.main = async (event, context) => {
     updatedAt: now
   }
 
-  try {
-    await users.doc(OPENID).update({ data: base })
-  } catch (e) {
-    await users.doc(OPENID).set({ data: { _openid: OPENID, role: 'buyer', createdAt: now, ...base } })
-  }
+  try { await users.doc(OPENID).update({ data: base }) }
+  catch { await users.doc(OPENID).set({ data: { _openid: OPENID, role:'buyer', createdAt: now, ...base } }) }
 
   const got = await users.doc(OPENID).get()
   return { ok:true, user: got.data }
