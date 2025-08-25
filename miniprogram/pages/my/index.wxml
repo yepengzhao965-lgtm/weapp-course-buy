@@ -1,27 +1,22 @@
-<view class="my-page">
-  <view class="header">
-    <block wx:if="{{!user}}">
-      <view class="desc">登录后可同步头像昵称并查看已购课程</view>
-      <button class="btn" bindtap="loginTap" loading="{{busy}}" disabled="{{busy}}">微信一键登录</button>
-    </block>
-    <block wx:else>
-      <view class="profile">
-        <image class="avatar" src="{{user.avatarUrl || '/images/avatar-default.png'}}" />
-        <view class="name">{{user.nickName || '微信用户'}}</view>
-      </view>
-    </block>
-  </view>
 
-  <view class="purchased">
-    <view wx:if="{{list.length===0}}" class="empty">暂无已购课程</view>
-    <block wx:for="{{list}}" wx:key="outTradeNo">
-      <view class="item">
-        <image class="cover" src="{{item.cover||''}}"></image>
-        <view class="meta">
-          <view class="title">{{item.title}}</view>
-          <view class="sub">已购买 · ￥{{item.priceYuan}}</view>
-        </view>
-      </view>
-    </block>
-  </view>
+<!-- pages/my/index.wxml -->
+<view class="my-page">
+  <block wx:if="{{!user}}">
+    <view class="login-card">
+      <view class="login-title">需要微信授权登录</view>
+      <view class="login-desc">点击下方按钮完成授权并绑定账号</view>
+      <button class="login-btn" bindtap="onAuthLoginTap" loading="{{busy}}" disabled="{{busy}}">微信一键授权登录</button>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="profile-bar">
+      <image class="avatar" src="{{user.avatarUrl || '/images/avatar-default.png'}}" />
+      <view class="name">{{user.nickName || '微信用户'}}</view>
+      <view class="phone" wx:if="{{user.mobile}}">{{user.mobile}}</view>
+      <button class="mini" wx:if="{{!user.mobile}}" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber">绑定手机号</button>
+    </view>
+  </block>
+
+  <view class="content"></view>
 </view>

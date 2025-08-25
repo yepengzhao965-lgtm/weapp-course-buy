@@ -1,7 +1,1 @@
-{
-  "name": "getPhoneNumber",
-  "version": "1.0.0",
-  "description": "获取手机号",
-  "main": "index.js",
-  "dependencies": { "wx-server-sdk": "latest" }
-}
+{"name":"getPhoneNumber","version":"1.0.0","dependencies":{"wx-server-sdk":"latest"}}

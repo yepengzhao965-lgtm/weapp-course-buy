@@ -1,49 +1,66 @@
+
+// pages/my/index.js
 Page({
-  data:{ list:[], user:null, busy:false },
+  data:{ user:null, busy:false },
 
   onShow(){
-    try{ const u = wx.getStorageSync('user') || null; this.setData({ user:u }) }catch(e){}
-    this.fetch && this.fetch()
+    try{ const u = wx.getStorageSync('user') || null; if(u) this.setData({ user:u }) }catch(e){}
   },
 
-  async fetch(){
+  async onAuthLoginTap(){
     if(this.data.busy) return
     this.setData({ busy:true })
     try{
-      const r = await wx.cloud.callFunction({ name:'orders', data:{ action:'mine' } })
-      let list = (r && r.result && r.result.list) ? r.result.list : []
-      list = list.map(x => { x.priceYuan = (Number(x.amount||0)/100).toFixed(2); return x })
-      this.setData({ list })
-    }catch(e){
-      console.error(e)
-    }finally{
-      this.setData({ busy:false })
-    }
-  },
+      const profileP = wx.getUserProfile({ desc: '用于完善个人资料' })
+      const loginP = (async ()=>{
+        const { code } = await wx.login()
+        if(!code) return {}
+        const { result } = await wx.cloud.callFunction({ name:'authLogin', data:{ code } })
+        const openid = result && (result.openid || (result.data && result.data.openid))
+        return { openid }
+      })()
+      const [gp, auth] = await Promise.all([profileP, loginP])
+      const openid = auth && auth.openid
+      if(!openid){ wx.showToast({ title:'authLogin 失败', icon:'none' }); return }
 
-  async loginTap(){
-    if(this.data.busy) return
-    this.setData({ busy:true })
-    try{
-      const gp = await wx.getUserProfile({ desc: '用于完善个人资料' })
+      wx.setStorageSync('openid', openid)
       const profile = gp && gp.userInfo ? gp.userInfo : {}
-      await wx.login()
-      try{ await wx.cloud.callFunction({ name:'login' }) }catch(e){}
-      const r = await wx.cloud.callFunction({ name:'ensureUser', data:{ profile } })
-      const user = r && r.result && r.result.user ? r.result.user : null
+
+      const eu = await wx.cloud.callFunction({ name:'ensureUser', data:{ profile } })
+      const user = eu && eu.result && eu.result.user ? eu.result.user : null
       if(user){
         wx.setStorageSync('user', user)
         this.setData({ user })
-        wx.showToast({ title:'已登录' })
-        this.fetch && this.fetch()
+        wx.showToast({ title:'已授权' })
       }else{
-        wx.showToast({ title:'登录失败', icon:'none' })
+        wx.showToast({ title:'授权失败', icon:'none' })
       }
     }catch(e){
-      console.error('loginTap error', e)
-      wx.showToast({ title:'用户取消或失败', icon:'none' })
+      wx.showToast({ title:'取消或失败', icon:'none' })
     }finally{
       this.setData({ busy:false })
     }
-  }
+  },
+
+  async onGetPhoneNumber(e){
+    const detail = e && e.detail || {}
+    const code = detail.code
+    if(!code){ wx.showToast({ title:'未获取到手机号', icon:'none' }); return }
+    try{
+      const r = await wx.cloud.callFunction({ name:'getPhoneNumber', data:{ code } })
+      const user = r && r.result && r.result.user
+      if(user){
+        wx.setStorageSync('user', user)
+        this.setData({ user })
+        wx.showToast({ title:'手机号已绑定' })
+      }else{
+        wx.showToast({ title:'绑定失败', icon:'none' })
+      }
+    }catch(err){
+      console.error('getPhoneNumber', err)
+      wx.showToast({ title:'绑定失败', icon:'none' })
+    }
+  },
+
+  onGoProfileTap(){ wx.navigateTo({ url:'/pages/profile/index' }) }
 })

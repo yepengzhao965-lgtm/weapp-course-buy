@@ -1,0 +1,13 @@
+.page{ padding:24rpx }
+.card{ background:#fff;border-radius:24rpx;padding:32rpx;box-shadow:0 8rpx 24rpx rgba(0,0,0,.06) }
+.title{ font-size:32rpx;font-weight:600;margin-bottom:8rpx }
+.desc{ color:#666;margin-bottom:16rpx }
+.btn{ background:#07c160;color:#fff;border:0;border-radius:12rpx;margin-bottom:12rpx }
+.tools{ display:flex;align-items:center;gap:16rpx;margin-bottom:8rpx }
+.mini{ border-radius:10rpx }
+.mini.danger{ background:#f44;color:#fff }
+.user{ display:flex;align-items:center;margin-bottom:12rpx }
+.avatar{ width:140rpx;height:140rpx;border-radius:70rpx;background:#f5f5f5 }
+.name{ margin-left:16rpx;font-size:30rpx;font-weight:600 }
+.diag{ max-height:260rpx;border:1px dashed #ddd;padding:10rpx;white-space:pre-wrap;background:#fafafa;border-radius:8rpx }
+.tips{ color:#999;font-size:24rpx }
