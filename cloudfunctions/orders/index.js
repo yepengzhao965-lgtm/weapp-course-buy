@@ -52,7 +52,7 @@ exports.main = async (event) => {
   }
 
   if (action === 'mine') {
-    const r = await orders.where({ openid: OPENID, status: 'PAID' }).orderBy('updatedAt','desc').get()
+    const r = await orders.where({ openid: OPENID, status: 'PAID' }).orderBy('paidAt','desc').get()
     return { list: r.data }
   }
 

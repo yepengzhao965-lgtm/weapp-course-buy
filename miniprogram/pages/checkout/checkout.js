@@ -42,9 +42,9 @@ Page({
       if (!openid) return;
       const db = wx.cloud.database();
       const r = await db.collection('orders').where({
-        _openid: openid,
+        openid,
         courseId: this.data.courseId,
-        status: 'paid'
+        status: 'PAID'
       }).limit(1).get();
       if (r.data && r.data.length) {
         this.setData({ isPaid: true });
@@ -148,10 +148,10 @@ Page({
         if (outTradeNo) {
           const r = await db.collection('orders').where({ outTradeNo }).get();
           const od = r.data && r.data[0];
-          paid = !!(od && od.status === 'paid');
+          paid = !!(od && od.status === 'PAID');
         } else if (orderId) {
           const r = await db.collection('orders').doc(orderId).get();
-          paid = !!(r.data && r.data.status === 'paid');
+          paid = !!(r.data && r.data.status === 'PAID');
         }
         if (paid) {
           wx.hideLoading();

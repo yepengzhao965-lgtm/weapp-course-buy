@@ -15,9 +15,9 @@ exports.main = async (event, context) => {
   // 检查订单状态
   const orderRes = await db.collection('orders')
     .where({
-      _openid: OPENID,
+      openid: OPENID,
       courseId: courseId,
-      status: 'paid'
+      status: 'PAID'
     })
     .get();
   if (!orderRes.data || orderRes.data.length === 0) {

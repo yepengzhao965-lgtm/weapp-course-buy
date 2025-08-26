@@ -19,12 +19,17 @@ const db = cloud.database()
     if (!r.data || !r.data.length) {
       return { code: -1, message: '订单不存在' }
     }
-    const targetId = r.data[0]._id
+    const order = r.data[0]
+    const targetId = order._id
+    const now = new Date()
     // 手动标记支付，记录手工标记来源
     await db.collection('orders').doc(targetId).update({
       data: {
-        status: 'paid',
-        paidAt: new Date(),
+        status: 'PAID',
+        paidAt: now,
+        openid: order.openid || '',
+        amount: order.amount || 0,
+        updatedAt: now,
         payResult: { manual: true }
       }
     })

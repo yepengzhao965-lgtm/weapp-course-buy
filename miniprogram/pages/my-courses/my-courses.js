@@ -18,7 +18,7 @@ Page({
 
       // 1) 取已支付订单
       const or = await db.collection('orders')
-        .where({ _openid: openid, status: 'paid' })
+        .where({ openid, status: 'PAID' })
         .orderBy('paidAt', 'desc')
         .get()
 
@@ -39,8 +39,8 @@ Page({
         courseId: o.courseId,
         title: (cmap[o.courseId] && cmap[o.courseId].title) || '课程已下架',
         brief: (cmap[o.courseId] && cmap[o.courseId].brief) || '',
-        price: (o.price || 0),
-        displayPrice: ((o.price || 0) / 100).toFixed(2)
+        amount: (o.amount || 0),
+        displayPrice: ((o.amount || 0) / 100).toFixed(2)
       }))
 
       this.setData({ list, empty: false })

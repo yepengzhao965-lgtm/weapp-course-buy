@@ -32,16 +32,18 @@ exports.main = async (event) => {
   if (payNotReady) {
     if (!DEV_MOCK_PAY) return { code:-1, message: '支付未配置' }
     const outTradeNo = `O${Date.now()}${Math.floor(Math.random()*1000)}`
+    const now = new Date()
     const addRes = await db.collection('orders').add({
       data:{
-        _openid: OPENID,
+        openid: OPENID,
         outTradeNo,
         courseId,
-        price: total,
-        status:'paid',
-        paidAt:new Date(),
+        amount: total,
+        status:'PAID',
+        paidAt: now,
         payResult:{ mock:true },
-        createdAt:new Date()
+        createdAt: now,
+        updatedAt: now
       }
     })
     return { code:0, data:{ devMock:true, outTradeNo, orderId:addRes._id } }  // 已自动标记为已支付
@@ -52,8 +54,9 @@ exports.main = async (event) => {
   // —— 以下为正式 JSAPI 下单（之前给你的逻辑不变） ——
   try{
     const outTradeNo = `O${Date.now()}${Math.floor(Math.random()*1000)}`
+    const now = new Date()
     await db.collection('orders').add({
-      data:{ _openid: OPENID, outTradeNo, courseId, price: total, status:'pending', createdAt:new Date() }
+      data:{ openid: OPENID, outTradeNo, courseId, amount: total, status:'CREATED', createdAt: now, updatedAt: now }
     })
 
     const url = 'https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi'

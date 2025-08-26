@@ -54,10 +54,12 @@ exports.main = async (event, context) => {
     // resource.trade_state === 'SUCCESS'
     const outTradeNo = resource.out_trade_no
     const transactionId = resource.transaction_id || ''
+    const payerOpenid = resource.payer && resource.payer.openid
+    const total = resource.amount && Number(resource.amount.total || 0)
     if (resource.trade_state === 'SUCCESS' && outTradeNo){
       const r = await orders.where({ outTradeNo }).get()
       if (r.data.length){
-        await orders.doc(r.data[0]._id).update({ data:{ status:'PAID', transactionId, updatedAt:new Date() } })
+        await orders.doc(r.data[0]._id).update({ data:{ status:'PAID', transactionId, paidAt:new Date(), openid:payerOpenid, amount: total, updatedAt:new Date() } })
       }
     }
     return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code:'SUCCESS', message:'成功' }) }

@@ -47,7 +47,8 @@ exports.main = async (event)=>{
   // 如果环境未配置完整，直接 mock（开发期）
   const needMock = (MOCK_PAY === 'true') || !APPID || !MCH_ID || !MCH_SERIAL_NO || !isValidPEM(MCH_PRIVATE_KEY)
   if (needMock){
-    await orders.doc(order._id).update({ data: { status: 'PAID', updatedAt: new Date(), transactionId: 'MOCK' } })
+    const now = new Date()
+    await orders.doc(order._id).update({ data: { status: 'PAID', paidAt: now, openid: OPENID, amount: order.amount, updatedAt: now, transactionId: 'MOCK' } })
     return { mockPaid: true }
   }
 

@@ -19,7 +19,7 @@ exports.main = async (event) => {
   }
 
   try { await users.doc(OPENID).update({ data: base }) }
-  catch { await users.doc(OPENID).set({ data: { _openid: OPENID, role:'buyer', createdAt: now, ...base } }) }
+  catch { await users.doc(OPENID).set({ data: { openid: OPENID, role:'buyer', createdAt: now, ...base } }) }
 
   const got = await users.doc(OPENID).get()
   return { ok:true, user: got.data }
