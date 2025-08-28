@@ -27,7 +27,7 @@ Page({
     }).catch(err => {
       console.error(err);
       let message = '加载失败，请稍后重试';
-      let authorized = true;
+      let authorized = false;
       if (err.message === 'NOT_AUTHORIZED') {
         message = '请先购买课程';
         authorized = false;

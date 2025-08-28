@@ -1,5 +1,5 @@
 const cloud = require('wx-server-sdk');
-const { isAuthorized } = require('../common/auth');
+const { isAuthorized } = require('../common');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 

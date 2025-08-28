@@ -1,5 +1,5 @@
 const cloud = require('wx-server-sdk');
-const { isAuthorized } = require('../common/auth');
+const { isAuthorized } = require('../common');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
@@ -8,7 +8,9 @@ const db = cloud.database();
  * @param {*} event
  */
 exports.main = async (event, context) => {
+  const { OPENID, CLIENTIP } = cloud.getWXContext();
   if (!isAuthorized(OPENID, CLIENTIP)) {
+   
     console.error('Unauthorized invoke', { OPENID, CLIENTIP });
     return { code: -1 };
   }
