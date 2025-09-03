@@ -1,1 +1,1 @@
-text{color:#666;padding:24rpx;display:block}
+.container{padding:24rpx}.tip{color:#666;font-size:26rpx;line-height:1.8;margin-bottom:32rpx}.btn{margin:16rpx 0}.primary{background:#07c160;color:#fff}.result{margin-top:32rpx;font-size:30rpx}

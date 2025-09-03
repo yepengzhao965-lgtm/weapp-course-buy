@@ -1,28 +1,8 @@
 {
   "pages": [
-    "pages/home/index",
-    "pages/my/index",
-    "pages/profile/index"
+    "pages/index/index"
   ],
   "window": {
-    "navigationBarTitleText": "课程商城",
-    "navigationBarBackgroundColor": "#ffffff",
-    "navigationBarTextStyle": "black"
-  },
-  "tabBar": {
-    "color": "#666666",
-    "selectedColor": "#07c160",
-    "borderStyle": "black",
-    "list": [
-      {
-        "pagePath": "pages/home/index",
-        "text": "课程"
-      },
-      {
-        "pagePath": "pages/my/index",
-        "text": "我的"
-      }
-    ]
-  },
-  "style": "v2"
+    "navigationBarTitleText": "手机号获取示例"
+  }
 }
