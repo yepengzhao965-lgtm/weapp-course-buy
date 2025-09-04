@@ -1,1 +1,1 @@
-App({});
+let ENV_ID='';try{ENV_ID=require('./env.js').ENV_ID||''}catch(e){}App({onLaunch(){if(!wx.cloud){console.error('请使用 2.2.3 或以上的基础库以使用云开发能力')}else{wx.cloud.init({env:ENV_ID||wx.cloud.DYNAMIC_CURRENT_ENV,traceUser:true})}}});

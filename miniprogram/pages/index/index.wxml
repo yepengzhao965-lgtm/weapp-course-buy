@@ -6,9 +6,7 @@
 
   <button class="btn" bindtap="openPrivacy">阅读并同意隐私指引</button>
 
-  <button class="btn primary" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber">
-    一键获取手机号
-  </button>
+  <button class="btn primary" bindtap="onLogin">微信登录</button>
 
   <view class="result">
     <text>手机号：{{phone || '（未获取）'}}</text>

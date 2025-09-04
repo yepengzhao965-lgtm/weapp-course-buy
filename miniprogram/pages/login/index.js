@@ -56,6 +56,24 @@ Page({
       }
     }catch(err){ this.print({ step:'unionid decrypt error', err: err?.errMsg || err?.message || String(err) }) }
   },
+ // C) 用户信息授权登录：弹出头像昵称授权窗
+ async onProfileLogin(){
+  try{
+    const profile = await wx.getUserProfile({ desc:'用于完善会员资料' })
+    this.print({ step:'getUserProfile', userInfo: profile?.userInfo })
+    const { code } = await wx.login()
+    if(code){
+      const r = await wx.cloud.callFunction({ name:'authLogin', data:{ code } })
+      const openid = r?.result?.openid || r?.result?.data?.openid
+      if(openid){ wx.setStorageSync('openid', openid); this.print({ step:'authLogin', openid }) }
+    }
+    wx.setStorageSync('user', profile?.userInfo || {})
+    wx.showToast({ title:'登录成功' })
+  }catch(err){
+    this.print({ step:'getUserProfile error', err: err?.errMsg || err?.message || String(err) })
+    wx.showToast({ title:'已取消或失败', icon:'none' })
+  }
+},
 
   onCheck(){
     this.print({ openid: wx.getStorageSync('openid') || '', user: wx.getStorageSync('user') || null })
